@@ -29,7 +29,7 @@ class IntrospectionClient(Node):
         self._spinner = threading.Thread(target=self._executor.spin)
         self._spinner.start()
 
-    def __del__(self):
+    def shutdown(self):
         self._executor.shutdown()
         self._spinner.join()
 
@@ -282,7 +282,7 @@ class IntrospectionServer(Node):
         self._spinner = threading.Thread(target=self._executor.spin)
         self._spinner.start()
 
-    def __del__(self):
+    def shutdown(self):
         self._executor.shutdown()
         self._spinner.join()
 
