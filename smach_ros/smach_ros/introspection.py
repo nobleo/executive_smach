@@ -2,7 +2,6 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.clock import ROSClock
-from rclpy.executors import SingleThreadedExecutor
 from std_msgs.msg import Header
 
 import base64
@@ -65,7 +64,7 @@ class IntrospectionClient(Node):
         initial_status_msg = SmachContainerInitialStatusCmd(
                 path = path,
                 initial_states = initial_states,
-                local_data = bytearray(pickle.dumps(initial_userdata._data, 2)))
+                local_data = base64.b64encode(pickle.dumps(initial_userdata._data, 2)))
 
         # A status message to receive confirmation that the state was set properly
         msg_response = SmachContainerStatus()
@@ -216,7 +215,7 @@ class ContainerProxy():
                     path=path,
                     initial_states=self._container.get_initial_states(),
                     active_states=self._container.get_active_states(),
-                    local_data=bytearray(pickle.dumps(self._container.userdata._data, 2)),
+                    local_data=base64.b64encode(pickle.dumps(self._container.userdata._data, 2)),
                     info=info_str)
             # Publish message
             self._status_pub.publish(state_msg)
@@ -241,7 +240,7 @@ class ContainerProxy():
         if msg.path == self._path:
             if all(s in self._container.get_children() for s in initial_states):
                 ud = smach.UserData()
-                ud._data = pickle.loads(msg.local_data)
+                ud._data = pickle.loads(base64.b64decode(msg.local_data))
                 self._server_node.get_logger().debug("Setting initial state in smach path: '"+self._path+"' to '"+str(initial_states)+"' with userdata: "+str(ud._data))
 
                 # Set the initial state
