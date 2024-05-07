@@ -359,7 +359,7 @@ class SimpleActionState(RosState):
             # Dispatch goal via non-blocking call to action server
             send_future = self._action_client.send_goal_async(
                 self._goal, feedback_callback=self._goal_feedback_cb)
-            send_future.add_done_callback(self._goal_active_cb)
+            send_future.add_done_callback(self._goal_accepted_cb)
 
             # Execution timeout watch thread
             if self._exec_timeout:
@@ -435,7 +435,7 @@ class SimpleActionState(RosState):
         return outcome
 
     # Action client callbacks
-    def _goal_active_cb(self, future):
+    def _goal_accepted_cb(self, future):
         """Goal Active Callback
         Accept or reject a client request to begin an action.
         """
