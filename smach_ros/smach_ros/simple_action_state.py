@@ -130,7 +130,7 @@ class SimpleActionState(RosState):
         self._action_spec = action_spec
 
         # Set timeouts
-        self._goal_status = 0
+        self._goal_status = GoalStatus.STATUS_UNKNOWN
         self._goal_result = None
         self._exec_timeout = exec_timeout
         self._preempt_timeout = preempt_timeout
@@ -354,6 +354,7 @@ class SimpleActionState(RosState):
         # Activate the state before sending the goal
         self._activate_time = self.node.get_clock().now()
         self._status = ActionState.ACTIVE
+        self._goal_status = GoalStatus.STATUS_UNKNOWN
 
         with self._done_cond:
             # Dispatch goal via non-blocking call to action server
@@ -440,6 +441,7 @@ class SimpleActionState(RosState):
         Accept or reject a client request to begin an action.
         """
         goal_handle = future.result()
+        self._goal_status = goal_handle.status
 
         if not goal_handle.accepted:
             self.node.get_logger().debug(f"Goal request from action {self._action_name} has been rejected!")
