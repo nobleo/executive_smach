@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+from typing import Any
 import rclpy
 from rclpy.duration import Duration
 import rclpy.action
 from rclpy.action.client import GoalStatus
 from rclpy.task import Future
 from enum import Enum
+from rclpy.action.client import ActionClient
+from threading import RLock
 
 import threading
 import traceback
@@ -15,6 +18,36 @@ import smach
 from .ros_state import RosState
 
 __all__ = ['SimpleActionState']
+
+
+class PatchRclpyIssue1123(ActionClient):
+    """Patch for rclpy issue 1123.
+    As per: https://github.com/ros2/rclpy/issues/1123#issuecomment-1551836411
+    """
+
+    _lock: RLock = None  # type: ignore
+
+    @property
+    def _cpp_client_handle_lock(self) -> RLock:
+        if self._lock is None:
+            self._lock = RLock()
+        return self._lock
+
+    async def execute(self, *args: Any, **kwargs: Any) -> None:
+        with self._cpp_client_handle_lock:
+            return await super().execute(*args, **kwargs)  # type: ignore
+
+    def send_goal_async(self, *args: Any, **kwargs: Any) -> Future:
+        with self._cpp_client_handle_lock:
+            return super().send_goal_async(*args, **kwargs)
+
+    def _cancel_goal_async(self, *args: Any, **kwargs: Any) -> Future:
+        with self._cpp_client_handle_lock:
+            return super()._cancel_goal_async(*args, **kwargs)
+
+    def _get_result_async(self, *args: Any, **kwargs: Any) -> Future:
+        with self._cpp_client_handle_lock:
+            return super()._get_result_async(*args, **kwargs)
 
 
 class ActionState(Enum):
@@ -218,7 +251,7 @@ class SimpleActionState(RosState):
         self._status = ActionState.WAITING_FOR_SERVER
 
         # Construct action client and goal handle
-        self._action_client = rclpy.action.ActionClient(self.node, action_spec, action_name)
+        self._action_client = PatchRclpyIssue1123(self.node, action_spec, action_name)
         self._client_goal_handle = None
 
         self._execution_timer_thread = None
