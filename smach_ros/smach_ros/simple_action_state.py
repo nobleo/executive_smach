@@ -324,6 +324,9 @@ class SimpleActionState(RosState):
         goal with a non-blocking call to the action client.
         """
 
+        # Ensure we start clean
+        self._preempt_requested = False
+
         # Make sure we're connected to the action server
         try:
             start_time = self.node.get_clock().now()
