@@ -14,6 +14,7 @@ jobs:
     env:
       PYLINT_ARGS: "--errors-only  --ignore-paths=^.*src/executive_smach/smach/smach/user_data.py$,^.*src/executive_smach/smach/smach/user_data.py$,^.*src/executive_smach/smach_ros/smach_ros/service_state.py$,^.*src/executive_smach/smach_ros/smach_ros/simple_action_state.py$,^.*src/executive_smach/smach_ros/test/.*$"
       PYLINT_CHECK: true
+      PYTHONWARNINGS: "$PYTHONWARNINGS,ignore:setup.py install is deprecated::setuptools.command.install,ignore:easy_install command is deprecated::setuptools.command.easy_install"
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
